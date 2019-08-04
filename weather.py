@@ -1,12 +1,17 @@
 from tkinter import *
+
+import psycopg2
+
+conn = psycopg2.connect(database="postgres", user = "postgres", password = "1234", host = "127.0.0.1", port = "5432")
+cur = conn.cursor()
+
 import tkinter as tk
 from PIL import Image, ImageTk
 import requests,json
+import time
 def main():
-    	
-				
 		a = Tk()
-		
+		a.resizable(0,0)
 		a.tk.call('wm', 'iconphoto', a._w,PhotoImage(file='001.png'))
 		a.title("WEATHER")
 		image = Image.open('0001.png')
@@ -32,18 +37,38 @@ def main():
 				if x["cod"] != "404":
 					y = x["main"]
 					current_temperature = y["temp"]
-					current_pressure = y["pressure"]
 					current_humidity = y["humidity"]
 					z = x["weather"]
 					weather_description = z[0]["description"]
 					e3.insert(END,current_temperature-273.15)
 					e5.insert(END,current_humidity)
 					e4.insert(END,weather_description)
+					e6.insert(END,times())
+					h=times()
+					v=dates()
 
-		def Clear():
+
+
+					cur.execute('insert into weather (city,temp,humidity,time,date)values (%s,%s,%s,%s,%s)',(city_name,(current_temperature-273),current_humidity,h,v));
+					conn.commit()
+
+
+
+
+		def clear():
 				e3.delete(1.0,END)
 				e5.delete(1.0,END)
 				e4.delete(1.0,END)
+				e6.delete(1.0,END)
+
+		def times():
+			time1 = time.strftime('%H:%M:%S')
+			return time1
+
+		def dates():
+			date1=time.strftime('%d/%m/%Y')
+			return date1
+
 
 		a.bind('<Return>', calc)
 
@@ -66,9 +91,18 @@ def main():
 		t3.grid(row=3,column=0)
 		e4=Text(a,height=1,width=20)
 		e4.grid(row=3,column=1)
-		reset=Button(text="reset values",command=Clear)
+		reset=Button(text="reset values",command=clear)
 		reset.grid(row=4,column=4)
+		t6=Label(a,text="Time",height=1,width=20)
+		t6.grid(row=4,column=0)
+		e6=Text(a,height=1,width=20)
+		e6.grid(row=4,column=1)
+
 
 
 		a.mainloop()
+
+
+
 main()
+conn.close()
